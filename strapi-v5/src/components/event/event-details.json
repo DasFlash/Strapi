@@ -1,0 +1,19 @@
+{
+  "collectionName": "components_event_event_details",
+  "info": {
+    "displayName": "event-details"
+  },
+  "options": {},
+  "attributes": {
+    "date": {
+      "type": "date"
+    },
+    "hour": {
+      "type": "time"
+    },
+    "place": {
+      "type": "string"
+    }
+  },
+  "config": {}
+}

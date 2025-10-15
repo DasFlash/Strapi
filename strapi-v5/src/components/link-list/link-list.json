@@ -1,0 +1,16 @@
+{
+  "collectionName": "components_link_list_link_lists",
+  "info": {
+    "displayName": "link-list"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "url": {
+      "type": "text"
+    }
+  },
+  "config": {}
+}
