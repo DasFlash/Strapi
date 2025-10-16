@@ -1,0 +1,44 @@
+{
+  "kind": "collectionType",
+  "collectionName": "plates",
+  "info": {
+    "singularName": "plate",
+    "pluralName": "plates",
+    "displayName": "plate"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "photo": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "name": {
+      "type": "string"
+    },
+    "price": {
+      "type": "decimal"
+    },
+    "allergen": {
+      "type": "component",
+      "component": "allergen.allergen",
+      "repeatable": true
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "first",
+        "second",
+        "dessert"
+      ]
+    }
+  }
+}
