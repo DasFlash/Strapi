@@ -19,12 +19,12 @@
       "relation": "oneToOne",
       "target": "api::plate.plate"
     },
-    "plate": {
+    "secondPlate": {
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::plate.plate"
     },
-    "plate2": {
+    "dessert": {
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::plate.plate"

@@ -445,6 +445,7 @@ export interface ApiDailyMenuDailyMenu extends Struct.CollectionTypeSchema {
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     day: Schema.Attribute.String;
+    dessert: Schema.Attribute.Relation<'oneToOne', 'api::plate.plate'>;
     firstPlate: Schema.Attribute.Relation<'oneToOne', 'api::plate.plate'>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
@@ -452,12 +453,11 @@ export interface ApiDailyMenuDailyMenu extends Struct.CollectionTypeSchema {
       'api::daily-menu.daily-menu'
     > &
       Schema.Attribute.Private;
-    plate: Schema.Attribute.Relation<'oneToOne', 'api::plate.plate'>;
-    plate2: Schema.Attribute.Relation<'oneToOne', 'api::plate.plate'>;
     price: Schema.Attribute.Decimal;
     priceIVA: Schema.Attribute.Decimal;
     priceWithOutIVA: Schema.Attribute.Decimal;
     publishedAt: Schema.Attribute.DateTime;
+    secondPlate: Schema.Attribute.Relation<'oneToOne', 'api::plate.plate'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;

@@ -1,34 +1,38 @@
+import { VAT_RATE, PLATE_TYPES } from '../../../../constants/index';
+import { errors } from '@strapi/utils';
+const { ValidationError } = errors;
+import {RelationField, MenuData, EventParams, Event} from '../../../../type/index'
 
 
 export default {
-  async beforeCreate(event: any) {
+  async beforeCreate(event: Event) {
     await validatePlateTypes(event);
     await updateTotalPrices(event);
   },
 
-  async beforeUpdate(event: any) {
+  async beforeUpdate(event: Event) {
     await validatePlateTypes(event);
     await updateTotalPrices(event);
   },
 };
 
-async function validatePlateTypes(event: any) {
+async function validatePlateTypes(event: Event) {
   const { data } = event.params;
 
-  const getId = (relation: any) => {
+  const getId = (relation?: RelationField | number | null): number | null => {
     if (!relation) return null;
-    if (Array.isArray(relation.connect) && relation.connect[0]?.id)
-      return relation.connect[0].id;
-    if (Array.isArray(relation.set) && relation.set[0]?.id)
-      return relation.set[0].id;
-    if (typeof relation.id === 'number') return relation.id;
     if (typeof relation === 'number') return relation;
+    if ('connect' in relation && Array.isArray(relation.connect) && relation.connect[0]?.id)
+      return relation.connect[0].id;
+    if ('set' in relation && Array.isArray(relation.set) && relation.set[0]?.id)
+      return relation.set[0].id;
+    if ('id' in relation && typeof relation.id === 'number') return relation.id;
     return null;
   };
 
   const firstId = getId(data.firstPlate);
-  const secondId = getId(data.plate);
-  const thirdId = getId(data.plate2);
+  const secondId = getId(data.secondPlate);
+  const thirdId = getId(data.dessert);
 
   async function checkPlateType(
     plateId: number | null,
@@ -42,42 +46,52 @@ async function validatePlateTypes(event: any) {
     });
 
     if (!plate) {
-      throw new Error(`Plate with ID ${plateId} assigned to '${fieldName}' not found.`);
+      throw new ValidationError(`Plate with ID ${plateId} assigned to '${fieldName}' not found.`);
     }
 
     if (plate.type !== expectedType) {
-      throw new Error(
+      throw new ValidationError(
         `Plate '${plate.name}' (ID ${plateId}) assigned to '${fieldName}' must be of type '${expectedType}', but is '${plate.type}'.`
       );
     }
   }
 
   await Promise.all([
-    checkPlateType(firstId, 'first', 'firstPlate'),
-    checkPlateType(secondId, 'second', 'plate'),
-    checkPlateType(thirdId, 'dessert', 'plate2'),
+    checkPlateType(firstId, PLATE_TYPES.FIRST, 'firstPlate'),
+    checkPlateType(secondId, PLATE_TYPES.SECOND, 'secondPlate'),
+    checkPlateType(thirdId, PLATE_TYPES.DESSERT, 'dessert'),
   ]);
 }
 
-async function updateTotalPrices(event: any) {
+async function calculateTotalPriceWithoutVAT(firstPrice: number, secondPrice: number, thirdPrice: number): Promise<number> {
+  const totalPrice = firstPrice + secondPrice + thirdPrice;
+  return Number(totalPrice.toFixed(2));
+}
+
+async function calculateTotalPriceWithVAT(totalPriceWithoutVAT: number): Promise<number> {
+  const totalPriceWithVAT = totalPriceWithoutVAT * (1 + VAT_RATE);
+  return Number(totalPriceWithVAT.toFixed(2));
+}
+
+async function updateTotalPrices(event: Event) {
   const { data, where } = event.params;
 
   const menuId = where?.id;
 
-  const getId = (relation: any) => {
+  const getId = (relation?: RelationField | number | null): number | null => {
     if (!relation) return null;
-    if (Array.isArray(relation.connect) && relation.connect[0]?.id)
-      return relation.connect[0].id;
-    if (Array.isArray(relation.set) && relation.set[0]?.id)
-      return relation.set[0].id;
-    if (typeof relation.id === 'number') return relation.id;
     if (typeof relation === 'number') return relation;
+    if ('connect' in relation && Array.isArray(relation.connect) && relation.connect[0]?.id)
+      return relation.connect[0].id;
+    if ('set' in relation && Array.isArray(relation.set) && relation.set[0]?.id)
+      return relation.set[0].id;
+    if ('id' in relation && typeof relation.id === 'number') return relation.id;
     return null;
   };
 
   const firstId = getId(data.firstPlate);
-  const secondId = getId(data.plate);
-  const thirdId = getId(data.plate2);
+  const secondId = getId(data.secondPlate);
+  const thirdId = getId(data.dessert);
 
   if (menuId) {
     try {
@@ -116,9 +130,8 @@ async function updateTotalPrices(event: any) {
     const secondPrice = second?.price || 0;
     const thirdPrice = third?.price || 0;
 
-    const totalPriceWithoutVAT = firstPrice + secondPrice + thirdPrice;
-    const VAT_RATE = 0.21;
-    const totalPriceWithVAT = parseFloat((totalPriceWithoutVAT * (1 + VAT_RATE)).toFixed(2));
+    const totalPriceWithoutVAT = await calculateTotalPriceWithoutVAT(firstPrice, secondPrice, thirdPrice);
+    const totalPriceWithVAT = await calculateTotalPriceWithVAT(totalPriceWithoutVAT);
 
     data.priceWithOutIVA = totalPriceWithoutVAT;
     data.priceIVA = totalPriceWithVAT;
@@ -126,4 +139,3 @@ async function updateTotalPrices(event: any) {
     console.error('Error during manual price calculation:', err);
   }
 }
-
